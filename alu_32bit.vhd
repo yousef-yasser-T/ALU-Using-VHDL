@@ -1,0 +1,101 @@
+
+--  File        : alu_32bit.vhd
+--  Description : 32-bit Registered ALU (clocked)
+--                Output is registered on rising edge of CLK.
+--  Operations  : ADD SUB MUL AND OR XOR NOT SHL SHR
+--  Flags       : Z (Zero)
+--  Standard    : VHDL-2008
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity alu_32bit is
+    port (
+        CLK    : in  std_logic;
+        RST    : in  std_logic;   -- sync active-high reset
+        A      : in  std_logic_vector(31 downto 0);
+        B      : in  std_logic_vector(31 downto 0);
+        SEL    : in  std_logic_vector(3  downto 0);
+        RESULT : out std_logic_vector(31 downto 0);
+        Z_FLAG : out std_logic
+    );
+end entity alu_32bit;
+
+architecture rtl of alu_32bit is
+
+    -- SEL encoding
+    constant OP_ADD : std_logic_vector(3 downto 0) := "0000";
+    constant OP_SUB : std_logic_vector(3 downto 0) := "0001";
+    constant OP_MUL : std_logic_vector(3 downto 0) := "0010";
+    constant OP_AND : std_logic_vector(3 downto 0) := "0011";
+    constant OP_OR  : std_logic_vector(3 downto 0) := "0100";
+    constant OP_XOR : std_logic_vector(3 downto 0) := "0101";
+    constant OP_NOT : std_logic_vector(3 downto 0) := "0110";
+    constant OP_SHL : std_logic_vector(3 downto 0) := "0111";
+    constant OP_SHR : std_logic_vector(3 downto 0) := "1000";
+
+    signal comb_result : std_logic_vector(31 downto 0);
+    signal shift_amt   : natural range 0 to 31;
+
+begin
+
+    shift_amt <= to_integer(unsigned(B(4 downto 0)));
+
+    
+    --  Combinational stage
+        comb_proc : process(A, B, SEL, shift_amt)
+        variable a_s : signed(31 downto 0);
+        variable b_s : signed(31 downto 0);
+        variable a_u : unsigned(31 downto 0);
+    begin
+        a_s := signed(A);
+        b_s := signed(B);
+        a_u := unsigned(A);
+
+        case SEL is
+            when OP_ADD => comb_result <= std_logic_vector(a_s + b_s);
+            when OP_SUB => comb_result <= std_logic_vector(a_s - b_s);
+            when OP_MUL => comb_result <= std_logic_vector(resize(a_s * b_s, 32));
+            when OP_AND => comb_result <= A and B;
+            when OP_OR  => comb_result <= A or  B;
+            when OP_XOR => comb_result <= A xor B;
+            when OP_NOT => comb_result <= not A;
+            when OP_SHL =>
+                if shift_amt = 0 then
+                    comb_result <= A;
+                else
+                    comb_result <= std_logic_vector(shift_left(a_u, shift_amt));
+                end if;
+            when OP_SHR =>
+                if shift_amt = 0 then
+                    comb_result <= A;
+                else
+                    comb_result <= std_logic_vector(shift_right(a_u, shift_amt));
+                end if;
+            when others  => comb_result <= (others => '0');
+        end case;
+    end process comb_proc;
+
+    
+    --  Register stage a pad sts clocked on rising CLK
+    
+    reg_proc : process(CLK)
+    begin
+        if rising_edge(CLK) then
+            if RST = '1' then
+                RESULT <= (others => '0');
+                Z_FLAG <= '0';
+            else
+                RESULT <= comb_result;
+                if comb_result = x"00000000" then
+    			Z_FLAG <= '1';
+		else
+    			Z_FLAG <= '0';
+		end if;
+            end if;
+        end if;
+    end process reg_proc;
+
+end architecture rtl;

@@ -1,0 +1,156 @@
+--  File        : tb_alu_32bit.vhd
+--  Description : Clock-driven parametric TB (VHDL-93 safe)
+--  Standard    : VHDL-93 / 2002 / 2008
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity tb_alu_32bit is
+end entity tb_alu_32bit;
+
+architecture sim of tb_alu_32bit is
+
+    component alu_32bit is
+        port (
+            CLK    : in  std_logic;
+            RST    : in  std_logic;
+            A      : in  std_logic_vector(31 downto 0);
+            B      : in  std_logic_vector(31 downto 0);
+            SEL    : in  std_logic_vector(3  downto 0);
+            RESULT : out std_logic_vector(31 downto 0);
+            Z_FLAG : out std_logic
+        );
+    end component;
+
+    
+    --  Parameters
+    
+    constant CLK_PERIOD : time    := 10 ns;
+    constant N_PAIRS    : integer := 8;
+    constant N_OPS      : integer := 9;
+
+    --  DUT ports
+    
+    signal CLK    : std_logic := '0';
+    signal RST    : std_logic := '1';
+    signal A      : std_logic_vector(31 downto 0) := (others => '0');
+    signal B      : std_logic_vector(31 downto 0) := (others => '0');
+    signal SEL    : std_logic_vector(3  downto 0) := (others => '0');
+    signal RESULT : std_logic_vector(31 downto 0);
+    signal Z_FLAG : std_logic;
+
+    -- LFSR registers
+    signal lfsr_a : std_logic_vector(31 downto 0) := x"ACE1ACE1";
+    signal lfsr_b : std_logic_vector(31 downto 0) := x"DEADBEEF";
+
+    
+    --  slv32 to hex string (no to_hstring needed)
+        function to_hex_str(slv : std_logic_vector(31 downto 0)) return string is
+        constant HEX : string(1 to 16) := "0123456789ABCDEF";
+        variable hex_str : string(1 to 8);
+        variable nibble : integer;
+    begin
+        for i in 7 downto 0 loop
+            nibble := to_integer(unsigned(
+                          slv(i*4+3 downto i*4)));
+            hex_str(8-i) := HEX(nibble+1);
+        end loop;
+        return hex_str;
+    end function;
+
+        --  LFSR next (Galois 32-bit)
+    
+    procedure lfsr_next(signal reg : inout std_logic_vector(31 downto 0)) is
+        variable lsb : std_logic;
+    begin
+        lsb := reg(0);
+        reg <= '0' & reg(31 downto 1);
+        if lsb = '1' then
+            reg <= ('0' & reg(31 downto 1)) xor x"80200003";
+        end if;
+    end procedure;
+
+   
+    --  Op name
+      function op_str(s : integer) return string is
+    begin
+        case s is
+            when 0      => return "ADD";
+            when 1      => return "SUB";
+            when 2      => return "MUL";
+            when 3      => return "AND";
+            when 4      => return " OR";
+            when 5      => return "XOR";
+            when 6      => return "NOT";
+            when 7      => return "SHL";
+            when 8      => return "SHR";
+            when others => return "???";
+        end case;
+    end function;
+
+begin
+
+    DUT : alu_32bit
+        port map (CLK => CLK, RST => RST,
+                  A => A, B => B, SEL => SEL,
+                  RESULT => RESULT, Z_FLAG => Z_FLAG);
+
+    -- Free-running clock
+    CLK <= not CLK after CLK_PERIOD / 2;
+
+    
+    --  Stimulus
+        stim_proc : process
+        variable z_char : character;
+    begin
+        -- Reset 3 cycles
+        RST <= '1';
+        for i in 1 to 3 loop
+            wait until rising_edge(CLK);
+        end loop;
+        RST <= '0';
+        wait until rising_edge(CLK);
+
+        report "=== ALU sweep START ===" severity note;
+
+        for p in 0 to N_PAIRS-1 loop
+
+            lfsr_next(lfsr_a);
+            lfsr_next(lfsr_b);
+            A <= lfsr_a;
+            B <= lfsr_b;
+
+            for s in 0 to N_OPS-1 loop
+                SEL <= std_logic_vector(to_unsigned(s, 4));
+                wait until rising_edge(CLK);   -- apply
+                wait until rising_edge(CLK);   -- capture
+
+                if Z_FLAG = '1' then
+                    z_char := '1';
+                else
+                    z_char := '0';
+                end if;
+
+                report op_str(s) &
+                       "  A=0x" & to_hex_str(A) &
+                       "  B=0x" & to_hex_str(B) &
+                       "  =>0x" & to_hex_str(RESULT) &
+                       "  Z="   & z_char
+                    severity note;
+            end loop;
+
+            report "---" severity note;
+        end loop;
+
+        report "=== ALU sweep END ===" severity note;
+
+        -- Stop simulation cleanly so ModelSim generates the wave
+        assert false
+            report "Simulation finished successfully"
+            severity failure;
+
+        wait;
+    end process stim_proc;
+
+end architecture sim;
