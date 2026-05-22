@@ -189,3 +189,5 @@ run -all
 # ** Failure: Simulation finished successfully
 #    Time: 1475 ns  Iteration: 0  Process: /tb_alu_32bit/stim_proc File: D:/fpga/FGPA/VHDL/pro/ALU/tb_alu_32bit.vhd
 # Break in Process stim_proc at D:/fpga/FGPA/VHDL/pro/ALU/tb_alu_32bit.vhd line 157
+# End time: 01:51:04 on May 23,2026, Elapsed time: 1:54:45
+# Errors: 1, Warnings: 8
