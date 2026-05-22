@@ -1,0 +1,23 @@
+# Compile of alu_32bit.vhd was successful.
+# Compile of tb_alu_32bit.vhd was successful.
+vsim -gui work.tb_alu_32bit
+# vsim -gui work.tb_alu_32bit 
+# Start time: 23:56:19 on May 22,2026
+# Loading std.standard
+# Loading std.textio(body)
+# Loading ieee.std_logic_1164(body)
+# Loading ieee.numeric_std(body)
+# Loading work.tb_alu_32bit(sim)
+# Loading work.alu_32bit(rtl)
+add wave -position end  sim:/tb_alu_32bit/CLK
+add wave -position end  sim:/tb_alu_32bit/RST
+add wave -position end  sim:/tb_alu_32bit/A
+add wave -position end  sim:/tb_alu_32bit/B
+add wave -position end  sim:/tb_alu_32bit/SEL
+add wave -position end  sim:/tb_alu_32bit/RESULT
+add wave -position end  sim:/tb_alu_32bit/Z_FLAG
+add wave -position end  sim:/tb_alu_32bit/lfsr_a
+add wave -position end  sim:/tb_alu_32bit/lfsr_b
+add wave -position end  sim:/tb_alu_32bit/CLK_PERIOD
+add wave -position end  sim:/tb_alu_32bit/N_PAIRS
+add wave -position end  sim:/tb_alu_32bit/N_OPS
