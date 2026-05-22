@@ -1,8 +1,6 @@
--- ============================================================
 --  File        : tb_alu_32bit.vhd
 --  Description : Clock-driven parametric TB (VHDL-93 safe)
 --  Standard    : VHDL-93 / 2002 / 2008
--- ============================================================
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -25,16 +23,15 @@ architecture sim of tb_alu_32bit is
         );
     end component;
 
-    -- --------------------------------------------------------
+    
     --  Parameters
-    -- --------------------------------------------------------
+    
     constant CLK_PERIOD : time    := 10 ns;
     constant N_PAIRS    : integer := 8;
     constant N_OPS      : integer := 9;
 
-    -- --------------------------------------------------------
     --  DUT ports
-    -- --------------------------------------------------------
+    
     signal CLK    : std_logic := '0';
     signal RST    : std_logic := '1';
     signal A      : std_logic_vector(31 downto 0) := (others => '0');
@@ -47,10 +44,9 @@ architecture sim of tb_alu_32bit is
     signal lfsr_a : std_logic_vector(31 downto 0) := x"ACE1ACE1";
     signal lfsr_b : std_logic_vector(31 downto 0) := x"DEADBEEF";
 
-    -- --------------------------------------------------------
+    
     --  slv32 to hex string (no to_hstring needed)
-    -- --------------------------------------------------------
-    function to_hex_str(slv : std_logic_vector(31 downto 0)) return string is
+        function to_hex_str(slv : std_logic_vector(31 downto 0)) return string is
         constant HEX : string(1 to 16) := "0123456789ABCDEF";
         variable hex_str : string(1 to 8);
         variable nibble : integer;
@@ -63,9 +59,8 @@ architecture sim of tb_alu_32bit is
         return hex_str;
     end function;
 
-    -- --------------------------------------------------------
-    --  LFSR next (Galois 32-bit)
-    -- --------------------------------------------------------
+        --  LFSR next (Galois 32-bit)
+    
     procedure lfsr_next(signal reg : inout std_logic_vector(31 downto 0)) is
         variable lsb : std_logic;
     begin
@@ -76,10 +71,9 @@ architecture sim of tb_alu_32bit is
         end if;
     end procedure;
 
-    -- --------------------------------------------------------
+   
     --  Op name
-    -- --------------------------------------------------------
-    function op_str(s : integer) return string is
+      function op_str(s : integer) return string is
     begin
         case s is
             when 0      => return "ADD";
@@ -105,10 +99,9 @@ begin
     -- Free-running clock
     CLK <= not CLK after CLK_PERIOD / 2;
 
-    -- --------------------------------------------------------
+    
     --  Stimulus
-    -- --------------------------------------------------------
-    stim_proc : process
+        stim_proc : process
         variable z_char : character;
     begin
         -- Reset 3 cycles

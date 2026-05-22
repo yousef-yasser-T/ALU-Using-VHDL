@@ -1,8 +1,8 @@
-# ============================================================
+
 #  ModelSim DO script – compiles, runs, opens wave
 #  Run from:  ModelSim → File → Change Directory → project folder
 #  Then:      do wave_alu.do
-# ============================================================
+
 
 # --- 1. Create / reset work library ---
 vlib work

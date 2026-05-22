@@ -1,11 +1,11 @@
--- ============================================================
+
 --  File        : alu_32bit.vhd
 --  Description : 32-bit Registered ALU (clocked)
 --                Output is registered on rising edge of CLK.
 --  Operations  : ADD SUB MUL AND OR XOR NOT SHL SHR
 --  Flags       : Z (Zero)
 --  Standard    : VHDL-2008
--- ============================================================
+
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -43,10 +43,8 @@ begin
 
     shift_amt <= to_integer(unsigned(B(4 downto 0)));
 
-    -- --------------------------------------------------------
     --  Combinational stage
-    -- --------------------------------------------------------
-    comb_proc : process(A, B, SEL, shift_amt)
+        comb_proc : process(A, B, SEL, shift_amt)
         variable a_s : signed(31 downto 0);
         variable b_s : signed(31 downto 0);
         variable a_u : unsigned(31 downto 0);
@@ -79,10 +77,9 @@ begin
         end case;
     end process comb_proc;
 
-    -- --------------------------------------------------------
+   
     --  Register stage – clocked on rising CLK
-    -- --------------------------------------------------------
-    reg_proc : process(CLK)
+        reg_proc : process(CLK)
     begin
         if rising_edge(CLK) then
             if RST = '1' then
